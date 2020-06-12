@@ -23,6 +23,7 @@
     "cheerio": "^1.0.0-rc.3",
     "express": "^4.17.1",
     "express-handlebars": "^4.0.4",
+    "mongod": "^2.0.0",
     "mongoose": "^5.9.18",
     "morgan": "^1.10.0"
   }
