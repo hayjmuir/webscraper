@@ -27,37 +27,48 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // Connect to the Mongo DB
-mongoose.connect("mongodb://localhost/scraperdb", { useNewUrlParser: true });
+var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/scraperdb";
+mongoose.connect(MONGODB_URI);
 
 // Routes
 
 app.get("/scrape", function(req, res) {
   axios.get("http://www.nytimes.com/").then(function(response) {
-    var $ = cheerio.load(response.data);
-
+    var $ = cheerio.load(html);
+    var result = {};
     $("div.story-body").each(function(i, element) {
-      var result = {};
-
-      result.title = $(this)
-        .children("a")
-        .text();
-      result.link = $(this)
-        .children("a")
-        .attr("href");
-
-      db.Article.create(result)
-        .then(function(dbArticle) {
-          console.log(dbArticle);
-        })
-        .catch(function(err) {
-          console.log(err);
+        var link = $(element).find("a").attr("href");
+        var title = $(element).find("h2.headline").text().trim();
+        var summary = $(element).find("p.summary").text().trim();
+        var img = $(element).parent().find("figure.media").find("img").attr("src");
+        result.link = link;
+        result.title = title;
+        if (summary) {
+            result.summary = summary;
+        };
+        if (img) {
+            result.img = img;
+        }
+        else {
+            result.img = $(element).find(".wide-thumb").find("img").attr("src");
+        };
+        var entry = new Article(result);
+        Article.find({title: result.title}, function(err, data) {
+            if (data.length === 0) {
+                entry.save(function(err, data) {
+                    if (err) throw err;
+                });
+            }
         });
+    });
+    console.log("Scrape finished.");
+    res.redirect("/");
     });
 
     // Send a message to the client
     res.send("Scrape Complete");
   });
-});
+
 
 // Route for getting all Articles from the db
 app.get("/articles", function(req, res) {
