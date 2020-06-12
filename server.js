@@ -33,7 +33,7 @@ mongoose.connect(MONGODB_URI);
 // Routes
 
 app.get("/scrape", function(req, res) {
-  axios.get("http://www.nytimes.com/").then(function(response) {
+  axios.get("http://www.nytimes.com/").then(function(error,response,html) {
     var $ = cheerio.load(html);
     var result = {};
     $("div.story-body").each(function(i, element) {
