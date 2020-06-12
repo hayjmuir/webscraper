@@ -33,41 +33,37 @@ mongoose.connect(MONGODB_URI);
 // Routes
 
 app.get("/scrape", function(req, res) {
-  axios.get("http://www.nytimes.com/").then(function(error,response,html) {
-    var $ = cheerio.load(html);
-    var result = {};
-    $("div.story-body").each(function(i, element) {
-        var link = $(element).find("a").attr("href");
-        var title = $(element).find("h2.headline").text().trim();
-        var summary = $(element).find("p.summary").text().trim();
-        var img = $(element).parent().find("figure.media").find("img").attr("src");
-        result.link = link;
-        result.title = title;
-        if (summary) {
-            result.summary = summary;
-        };
-        if (img) {
-            result.img = img;
-        }
-        else {
-            result.img = $(element).find(".wide-thumb").find("img").attr("src");
-        };
-        var entry = new Article(result);
-        Article.find({title: result.title}, function(err, data) {
-            if (data.length === 0) {
-                entry.save(function(err, data) {
-                    if (err) throw err;
-                });
-            }
+    axios.get("https://movieweb.com/superheroes/").then(function(response) {
+        var $ = cheerio.load(response.data);
+        $("article").each(function(i, element) {
+          var result = {};
+          result.title = $(this)
+            .find("h3")
+            .children("a")
+            .text();
+          result.link = $(this)
+            .children("a")
+            .attr("href");
+          result.summary = $(this)
+            .find("p")
+            .text()
+            .trim();
+    
+          // Create a new Article using the `result` object built from scraping
+          db.Article.create(result)
+            .then(function(dbArticle) {
+              console.log(dbArticle);
+            })
+            .catch(function(err) {
+              console.log(err);
+            });
         });
-    });
-    console.log("Scrape finished.");
-    res.redirect("/");
+      });
     });
 
     // Send a message to the client
-    res.send("Scrape Complete");
-  });
+    // res.send("Scrape Complete");
+
 
 
 // Route for getting all Articles from the db
