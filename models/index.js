@@ -1,5 +1,5 @@
 module.exports = {
-    Article: require("./Article"),
-    Note: require("./Note")
+    Article: require("./Grape"),
+    Note: require("./Orange")
   };
   
