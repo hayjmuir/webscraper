@@ -32,7 +32,7 @@ mongoose.connect(MONGODB_URI);
 
 // Routes
 
-app.get("/scrape", function(req, res) {
+app.get("/", function(req, res) {
     axios.get("https://movieweb.com/superheroes/").then(function(response) {
         var $ = cheerio.load(response.data);
         $("article").each(function(i, element) {
